@@ -1,1 +1,1 @@
-# odin-event-manager
+## Odin Event Manager (Ruby)
