@@ -7,18 +7,30 @@ def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5, '0')[0..4]
 end
 
-def clean_phone_numbers(phone_numbers)
-  phone_numbers.each do |number|
-    if (number.length > 10) && (number[0] == 1)
-      number = number[1..-1]
-    elsif number.length > 10
-      number = nil
-    elsif number.length < 10
-      number = nil
+def clean_phone_number(phone_number)
+  # 414-520-5000
+  # (941)979-2000
+  # 778.232.7000
+  # 14018685000
+  # 9.82E+00
+
+  # 1. get only the digits
+  phone_number = phone_number.scan(/\d/).join
+  
+  if phone_number.length > 10
+    if phone_number[0] == '1'
+      phone_number = phone_number[1..-1]
+    else
+      phone_number = 'Bad number'
     end
   end
 
-  phone_numbers
+  if phone_number.length < 10
+    phone_number = 'Bad number'
+    return phone_number
+  end
+
+  phone_number
 end
 
 def legislators_by_zipcode(zip)
@@ -60,15 +72,18 @@ erb_template = ERB.new template_letter
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
-  phone_numbers = row[:homephone]
+  # get hour of registration
+  time_date = row[:regdate]
 
-  phone_numbers = clean_phone_numbers(phone_numbers)
+  # find out which hours of the day the most people registered
+  phone_number = clean_phone_number(row[:homephone])
 
-  zipcode = clean_zipcode(row[:zipcode])
+  puts "Phone number: #{phone_number}"
+  # zipcode = clean_zipcode(row[:zipcode])
 
-  legislators = legislators_by_zipcode(zipcode)
+  # legislators = legislators_by_zipcode(zipcode)
 
-  form_letter = erb_template.result(binding)
+  # form_letter = erb_template.result(binding)
 
-  save_thank_you_letter(id, form_letter)
+  # save_thank_you_letter(id, form_letter)
 end
