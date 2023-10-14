@@ -69,21 +69,37 @@ contents = CSV.open(
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
 
+
+def fetch_registration_hour(time_of_registration)
+  time_format = "%m/%d/%y %H:%M"
+  time_of_registration = Time.strptime(time_of_registration, time_format)
+  hour_of_registration = time_of_registration.strftime("%k:%M")
+end
+
+def fetch_registration_day(time_of_registration)
+  time_format = "%m/%d/%y %H:%M"
+  time_of_registration = Time.strptime(time_of_registration, time_format)
+  day_of_registration = time_of_registration.strftime("%A")
+end
+
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
   # get hour of registration
-  time_date = row[:regdate]
+  time_of_registration = row[:regdate]
 
-  # find out which hours of the day the most people registered
   phone_number = clean_phone_number(row[:homephone])
+  
+  # then get most common hour of registration
+  hour_of_registration = fetch_registration_hour(time_of_registration)
 
-  puts "Phone number: #{phone_number}"
-  # zipcode = clean_zipcode(row[:zipcode])
+  # then get most common week of registration
+  day_of_registration = fetch_registration_day(time_of_registration)
 
-  # legislators = legislators_by_zipcode(zipcode)
+  zipcode = clean_zipcode(row[:zipcode])
+  legislators = legislators_by_zipcode(zipcode)
 
-  # form_letter = erb_template.result(binding)
+  form_letter = erb_template.result(binding)
 
-  # save_thank_you_letter(id, form_letter)
+  save_thank_you_letter(id, form_letter)
 end
