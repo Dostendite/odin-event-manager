@@ -120,7 +120,13 @@ def print_most_common_hour(hours_of_registration)
   end
 
   mean_hour = exact_hours.sum / exact_hours.length
-  mean_hour = mean_hour.to_i
+  mean_hour = mean_hour.to_i 
+
+  if mean_hour < 12
+    mean_hour = mean_hour.to_s + ' AM'
+  else
+    mean_hour = (mean_hour - 12).to_s + ' PM'
+  end
 
   puts "Most common hour of registration: #{mean_hour}"
 end
