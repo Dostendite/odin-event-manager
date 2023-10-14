@@ -8,13 +8,6 @@ def clean_zipcode(zipcode)
 end
 
 def clean_phone_number(phone_number)
-  # 414-520-5000
-  # (941)979-2000
-  # 778.232.7000
-  # 14018685000
-  # 9.82E+00
-
-  # 1. get only the digits
   phone_number = phone_number.scan(/\d/).join
   
   if phone_number.length > 10
@@ -69,11 +62,10 @@ contents = CSV.open(
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
 
-
 def fetch_registration_hour(time_of_registration)
   time_format = "%m/%d/%y %H:%M"
   time_of_registration = Time.strptime(time_of_registration, time_format)
-  hour_of_registration = time_of_registration.strftime("%k:%M")
+  hour_of_registration = time_of_registration.strftime("%R")
 end
 
 def fetch_registration_day(time_of_registration)
@@ -82,19 +74,21 @@ def fetch_registration_day(time_of_registration)
   day_of_registration = time_of_registration.strftime("%A")
 end
 
+hours_of_registration = []
+days_of_registration = []
+
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
-  # get hour of registration
   time_of_registration = row[:regdate]
 
   phone_number = clean_phone_number(row[:homephone])
   
-  # then get most common hour of registration
   hour_of_registration = fetch_registration_hour(time_of_registration)
+  hours_of_registration << hour_of_registration
 
-  # then get most common week of registration
   day_of_registration = fetch_registration_day(time_of_registration)
+  days_of_registration << day_of_registration
 
   zipcode = clean_zipcode(row[:zipcode])
   legislators = legislators_by_zipcode(zipcode)
@@ -103,3 +97,33 @@ contents.each do |row|
 
   save_thank_you_letter(id, form_letter)
 end
+
+def print_most_common_weekday(days_of_registration)
+  day_hash = {}
+
+  days_of_registration.each do |day|
+      day_hash[day] ? day_hash[day] += 1 : day_hash[day] = 1
+  end
+
+  most_common_day = day_hash.max_by { |k, v| v }[0]
+
+  puts "Most common day of registration: #{most_common_day}"
+end
+
+def print_most_common_hour(hours_of_registration)
+  exact_hours = []
+
+  hours_of_registration.each do |hour|
+    hour_and_minutes = hour.split(':')
+    exact_hour = hour_and_minutes[0].to_i + hour_and_minutes[1].to_f / 60
+    exact_hours << exact_hour.round(2)
+  end
+
+  mean_hour = exact_hours.sum / exact_hours.length
+  mean_hour = mean_hour.to_i
+
+  puts "Most common hour of registration: #{mean_hour}"
+end
+
+print_most_common_weekday(days_of_registration)
+print_most_common_hour(hours_of_registration)
